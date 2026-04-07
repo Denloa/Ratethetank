@@ -1,422 +1,363 @@
-export default function Home() {
-  const categories = [
-    { label: "General Mechanics", value: 4.2, icon: "🛡️" },
-    { label: "Route Knowledge", value: 3.8, icon: "🗺️" },
-    { label: "Pull Pacing", value: 4.4, icon: "⚔️" },
-    { label: "Survivability", value: 4.6, icon: "✨" },
-    { label: "Would Queue Again", value: 4.7, icon: "✅" },
-  ];
+import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Shield, Star, Sword, Route, HeartPulse, MessageSquare, Skull, ExternalLink } from "lucide-react";
 
-  const reviews = [
-    "Good tank overall. Pulls were clean, but route got a little scuffed after the second boss.",
-    "Stayed alive well and kept things moving. Would definitely queue again.",
-  ];
+const profile = {
+  character: "Denloa",
+  realm: "Moon Guard",
+  region: "US",
+  spec: "Protection Paladin",
+  score: 3127,
+  role: "Tank",
+  raiderIO: "https://raider.io/characters/us/moon-guard/Denloa",
+};
 
-  const stars = (value) => {
-    const rounded = Math.round(value);
-    return "★".repeat(rounded) + "☆".repeat(5 - rounded);
+const categories = [
+  { key: "mechanics", label: "Mechanics", icon: Shield, hint: "Did the tank handle mechanics cleanly?" },
+  { key: "route", label: "Route", icon: Route, hint: "Did the pathing and count feel good?" },
+  { key: "pace", label: "Pace", icon: Sword, hint: "Were pulls smooth and fast without griefing?" },
+  { key: "survival", label: "Survival", icon: HeartPulse, hint: "Did the tank stay alive and feel sturdy?" },
+  { key: "queueAgain", label: "Queue Again", icon: Star, hint: "Would you run with this tank again?" },
+];
+
+const starterReviews = [
+  {
+    id: 1,
+    dungeon: "The MOTHERLODE!! +12",
+    createdAt: "2 hours ago",
+    comment: "Clean pulls and the run felt controlled the whole way.",
+    ratings: { mechanics: 5, route: 4, pace: 5, survival: 5, queueAgain: 5 },
+  },
+  {
+    id: 2,
+    dungeon: "Theater of Pain +10",
+    createdAt: "yesterday",
+    comment: "Good tank, just one scuffed route moment after second boss.",
+    ratings: { mechanics: 4, route: 3, pace: 4, survival: 4, queueAgain: 4 },
+  },
+  {
+    id: 3,
+    dungeon: "Cinderbrew Meadery +11",
+    createdAt: "2 days ago",
+    comment: "Very stable and easy to heal. Would absolutely queue again.",
+    ratings: { mechanics: 5, route: 4, pace: 4, survival: 5, queueAgain: 5 },
+  },
+];
+
+function average(list, key) {
+  if (!list.length) return 0;
+  const total = list.reduce((sum, item) => sum + (item.ratings[key] || 0), 0);
+  return total / list.length;
+}
+
+function overallAverage(list) {
+  if (!list.length) return 0;
+  const total = categories.reduce((sum, category) => sum + average(list, category.key), 0);
+  return total / categories.length;
+}
+
+function stars(value) {
+  const rounded = Math.round(value);
+  return "★".repeat(rounded) + "☆".repeat(5 - rounded);
+}
+
+function RatingPips({ value, onChange }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          className={`h-10 w-10 rounded-xl border text-sm font-bold transition ${
+            value >= n
+              ? "border-amber-300 bg-amber-300/20 text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.18)]"
+              : "border-white/10 bg-slate-950/70 text-slate-300 hover:border-amber-200/40 hover:text-amber-100"
+          }`}
+        >
+          {n}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function RateMyTankPage() {
+  const [reviews, setReviews] = useState(starterReviews);
+  const [form, setForm] = useState({
+    dungeon: "",
+    comment: "",
+    mechanics: 4,
+    route: 4,
+    pace: 4,
+    survival: 4,
+    queueAgain: 5,
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const categoryAverages = useMemo(() => {
+    return categories.map((category) => ({
+      ...category,
+      value: average(reviews, category.key),
+    }));
+  }, [reviews]);
+
+  const totalAverage = useMemo(() => overallAverage(reviews), [reviews]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const newReview = {
+      id: Date.now(),
+      dungeon: form.dungeon || "Unknown key",
+      createdAt: "just now",
+      comment: form.comment.trim() || "No comment left. Just vibes and judgment.",
+      ratings: {
+        mechanics: form.mechanics,
+        route: form.route,
+        pace: form.pace,
+        survival: form.survival,
+        queueAgain: form.queueAgain,
+      },
+    };
+
+    setReviews((current) => [newReview, ...current]);
+    setSubmitted(true);
+    setForm({
+      dungeon: "",
+      comment: "",
+      mechanics: 4,
+      route: 4,
+      pace: 4,
+      survival: 4,
+      queueAgain: 5,
+    });
+
+    setTimeout(() => setSubmitted(false), 2500);
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "radial-gradient(circle at top, rgba(245,158,11,0.12), transparent 28%), linear-gradient(180deg, #0f172a 0%, #020617 55%, #000000 100%)",
-        color: "white",
-        fontFamily: "Arial, sans-serif",
-        padding: "40px 20px",
-      }}
-    >
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <div
-          style={{
-            display: "inline-block",
-            border: "1px solid rgba(250,204,21,0.3)",
-            background: "rgba(250,204,21,0.08)",
-            color: "#fde68a",
-            borderRadius: "999px",
-            padding: "8px 14px",
-            marginBottom: "18px",
-            fontSize: "14px",
-          }}
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,53,15,0.35),transparent_28%),linear-gradient(180deg,#09090b_0%,#0f172a_45%,#020617_100%)] text-slate-100">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-200 w-fit"
         >
-          Protection Paladin Edition
+          WoW Mythic+ Tank Report • Anonymous guild and pug feedback
+        </motion.div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+          >
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div className="mb-3 flex items-center gap-2 text-amber-200">
+                  <Shield className="h-5 w-5" />
+                  <span className="text-sm uppercase tracking-[0.24em]">Rate My Tank</span>
+                </div>
+                <h1 className="text-4xl font-black tracking-tight text-amber-50 sm:text-5xl">
+                  {profile.character}
+                </h1>
+                <p className="mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">
+                  A fast anonymous page where people can judge the run, rate the tank, and move on without making an account.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-300">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{profile.spec}</span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{profile.realm}</span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{profile.role}</span>
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-amber-300/20 bg-amber-300/10 px-6 py-5 text-center lg:min-w-[210px]">
+                <div className="text-xs uppercase tracking-[0.3em] text-amber-200">Raider.IO</div>
+                <div className="mt-2 text-5xl font-black text-amber-50">{profile.score}</div>
+                <div className="mt-1 text-sm text-slate-300">Current Mythic+ score</div>
+                <a
+                  href={profile.raiderIO}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/25 px-3 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-300/10"
+                >
+                  View profile <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+          </motion.section>
+
+          <motion.aside
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-amber-200">Overall Rating</p>
+                <div className="mt-2 text-5xl font-black text-amber-50">{totalAverage.toFixed(1)}</div>
+                <div className="mt-2 text-base text-amber-100">{stars(totalAverage)}</div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+                <div className="text-2xl font-bold text-slate-100">{reviews.length}</div>
+                <div className="text-sm text-slate-400">reviews</div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3">
+              {categoryAverages.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <div key={category.key} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl border border-amber-200/15 bg-amber-300/10 p-2 text-amber-200">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-slate-100">{category.label}</div>
+                          <div className="text-xs text-slate-400">{category.hint}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-amber-100">{category.value.toFixed(1)}/5</div>
+                        <div className="text-xs text-slate-400">{stars(category.value)}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.aside>
         </div>
 
-        <h1 style={{ fontSize: "48px", margin: 0, color: "#fefce8" }}>
-          🛡️ Rate My Tank
-        </h1>
+        <div className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+          >
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-xl border border-amber-300/15 bg-amber-300/10 p-2 text-amber-200">
+                <MessageSquare className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-amber-50">Leave a rating</h2>
+                <p className="text-sm text-slate-400">Fast enough for pug survivors. No login needed.</p>
+              </div>
+            </div>
 
-        <p style={{ color: "#cbd5e1", fontSize: "18px", maxWidth: "760px", lineHeight: 1.6 }}>
-          A WoW-flavored Mythic+ rating page where people can glance at your
-          Raider.IO, drop quick votes, and judge how clean your tanking felt.
-        </p>
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-200">Dungeon / key</label>
+                <input
+                  value={form.dungeon}
+                  onChange={(e) => setForm((prev) => ({ ...prev, dungeon: e.target.value }))}
+                  placeholder="Ara-Kara +11"
+                  className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-200/40"
+                />
+              </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: "24px",
-            marginTop: "28px",
-          }}
-        >
-          <div style={{ display: "grid", gap: "24px" }}>
-            <div
-              style={{
-                border: "1px solid rgba(250,204,21,0.16)",
-                background: "rgba(15,23,42,0.76)",
-                borderRadius: "24px",
-                padding: "24px",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: "#fefce8" }}>👑 Tank Profile</h2>
-              <p style={{ color: "#94a3b8" }}>
-                Simple MVP with Raider.IO identity and fast anonymous voting.
-              </p>
+              {categories.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <div key={category.key} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="rounded-xl border border-amber-300/15 bg-amber-300/10 p-2 text-amber-200">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-100">{category.label}</div>
+                        <div className="text-xs text-slate-400">{category.hint}</div>
+                      </div>
+                    </div>
+                    <RatingPips
+                      value={form[category.key]}
+                      onChange={(value) => setForm((prev) => ({ ...prev, [category.key]: value }))}
+                    />
+                  </div>
+                );
+              })}
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "16px",
-                }}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-200">Anonymous comment</label>
+                <textarea
+                  value={form.comment}
+                  onChange={(e) => setForm((prev) => ({ ...prev, comment: e.target.value }))}
+                  placeholder="Felt clean, route was good, one risky pull but we lived."
+                  rows={4}
+                  className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-200/40"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full rounded-2xl bg-amber-300 px-4 py-3 text-base font-black text-slate-950 transition hover:scale-[1.01]"
               >
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Raider.IO Link
-                  </label>
-                  <input
-                    defaultValue="https://raider.io/characters/us/illidan/YourTankName"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "white",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
+                Submit rating
+              </button>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Public Page
-                  </label>
-                  <div
-                    style={{
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "#cbd5e1",
-                    }}
-                  >
-                    ratemytank.gg/yourtankname-illidan
-                  </div>
+              {submitted && (
+                <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-200">
+                  Rating submitted. The court of public opinion has spoken.
                 </div>
+              )}
+            </form>
+          </motion.section>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Character Name
-                  </label>
-                  <input
-                    defaultValue="YourTankName"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "white",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Realm
-                  </label>
-                  <input
-                    defaultValue="Illidan"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "white",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Spec
-                  </label>
-                  <input
-                    defaultValue="Protection Paladin"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "white",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Mythic+ Score
-                  </label>
-                  <input
-                    defaultValue="3421"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "white",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+          >
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-xl border border-amber-300/15 bg-amber-300/10 p-2 text-amber-200">
+                <Skull className="h-5 w-5" />
               </div>
-
-              <div
-                style={{
-                  marginTop: "24px",
-                  border: "1px solid rgba(250,204,21,0.16)",
-                  borderRadius: "24px",
-                  padding: "20px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "16px",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  background:
-                    "linear-gradient(135deg, rgba(120,53,15,0.18), rgba(2,6,23,0.95), rgba(251,191,36,0.06))",
-                }}
-              >
-                <div>
-                  <h3 style={{ margin: 0, fontSize: "28px" }}>YourTankName</h3>
-                  <p style={{ margin: "6px 0 0", color: "#94a3b8" }}>
-                    Protection Paladin • Illidan
-                  </p>
-                  <a
-                    href="https://raider.io"
-                    style={{
-                      display: "inline-block",
-                      marginTop: "10px",
-                      color: "#fde047",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    Open Raider.IO Profile
-                  </a>
-                </div>
-
-                <div
-                  style={{
-                    border: "1px solid rgba(250,204,21,0.30)",
-                    background: "rgba(250,204,21,0.08)",
-                    borderRadius: "24px",
-                    padding: "16px 24px",
-                    textAlign: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#fde047",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.2em",
-                    }}
-                  >
-                    Overall Rating
-                  </div>
-                  <div style={{ fontSize: "40px", fontWeight: 800 }}>4.3</div>
-                  <div style={{ fontSize: "14px", color: "#94a3b8" }}>
-                    based on 2 reviews
-                  </div>
-                </div>
+              <div>
+                <h2 className="text-2xl font-bold text-amber-50">Recent judgments</h2>
+                <p className="text-sm text-slate-400">Anonymous feedback from keys people actually remember.</p>
               </div>
             </div>
 
-            <div
-              style={{
-                border: "1px solid rgba(250,204,21,0.16)",
-                background: "rgba(15,23,42,0.76)",
-                borderRadius: "24px",
-                padding: "24px",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: "#fefce8" }}>📊 Community Scores</h2>
-              <p style={{ color: "#94a3b8" }}>
-                Fast, simple ratings for the stuff people actually care about.
-              </p>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "16px",
-                }}
-              >
-                {categories.map((cat) => (
-                  <div
-                    key={cat.label}
-                    style={{
-                      background: "rgba(2,6,23,0.8)",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      borderRadius: "24px",
-                      padding: "18px",
-                    }}
-                  >
-                    <div style={{ fontWeight: 700, marginBottom: "10px" }}>
-                      {cat.icon} {cat.label}
+            <div className="space-y-4">
+              {reviews.map((review) => {
+                const runAverage = overallAverage([{ ratings: review.ratings }]);
+                return (
+                  <div key={review.id} className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="text-lg font-bold text-slate-100">{review.dungeon}</div>
+                        <div className="mt-1 text-sm text-slate-400">Anonymous reviewer • {review.createdAt}</div>
+                      </div>
+                      <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 px-4 py-3 text-right">
+                        <div className="text-sm uppercase tracking-[0.2em] text-amber-200">Run rating</div>
+                        <div className="text-2xl font-black text-amber-50">{runAverage.toFixed(1)}</div>
+                        <div className="text-xs text-slate-300">{stars(runAverage)}</div>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                      <span>{stars(cat.value)}</span>
-                      <span style={{ color: "#94a3b8" }}>{cat.value}/5</span>
+
+                    <p className="mt-4 text-slate-300">{review.comment}</p>
+
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                      {categories.map((category) => (
+                        <div key={category.key} className="rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-300">
+                          <span className="font-semibold text-slate-100">{category.label}:</span> {review.ratings[category.key]}/5
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-
-            <div
-              style={{
-                border: "1px solid rgba(250,204,21,0.16)",
-                background: "rgba(15,23,42,0.76)",
-                borderRadius: "24px",
-                padding: "24px",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: "#fefce8" }}>💬 Recent Reviews</h2>
-              <p style={{ color: "#94a3b8" }}>What people are saying about this tank.</p>
-
-              <div style={{ display: "grid", gap: "16px" }}>
-                {reviews.map((review, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "rgba(2,6,23,0.8)",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      borderRadius: "24px",
-                      padding: "18px",
-                    }}
-                  >
-                    <div style={{ fontWeight: 700 }}>Anonymous Review</div>
-                    <div style={{ fontSize: "14px", color: "#94a3b8", marginTop: 4 }}>
-                      Community rating
-                    </div>
-                    <p style={{ margin: "12px 0 0", color: "#e2e8f0" }}>{review}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gap: "24px" }}>
-            <div
-              style={{
-                border: "1px solid rgba(250,204,21,0.16)",
-                background: "rgba(15,23,42,0.76)",
-                borderRadius: "24px",
-                padding: "24px",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: "#fefce8" }}>✨ Leave a Review</h2>
-              <p style={{ color: "#94a3b8" }}>
-                Quick voting flow for friends, guildies, or pug survivors.
-              </p>
-
-              <div style={{ display: "grid", gap: "14px" }}>
-                {categories.map((cat) => (
-                  <div
-                    key={cat.label}
-                    style={{
-                      background: "rgba(2,6,23,0.8)",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      borderRadius: "18px",
-                      padding: "14px",
-                    }}
-                  >
-                    <div style={{ fontWeight: 700, marginBottom: "8px" }}>
-                      {cat.icon} {cat.label}
-                    </div>
-                    <div style={{ color: "#fde68a" }}>☆ ☆ ☆ ☆ ☆</div>
-                  </div>
-                ))}
-
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, color: "#cbd5e1" }}>
-                    Comment
-                  </label>
-                  <textarea
-                    defaultValue="Good mechanics, shaky route, clean pulls after first boss..."
-                    style={{
-                      width: "100%",
-                      minHeight: "120px",
-                      padding: "12px 14px",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(250,204,21,0.16)",
-                      background: "rgba(2,6,23,0.9)",
-                      color: "white",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-
-                <button
-                  style={{
-                    width: "100%",
-                    border: "none",
-                    borderRadius: "16px",
-                    padding: "14px 18px",
-                    background: "#fde047",
-                    color: "#0f172a",
-                    fontWeight: 800,
-                    cursor: "pointer",
-                  }}
-                >
-                  Submit Review
-                </button>
-              </div>
-            </div>
-
-            <div
-              style={{
-                border: "1px solid rgba(250,204,21,0.16)",
-                background: "rgba(15,23,42,0.76)",
-                borderRadius: "24px",
-                padding: "24px",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: "#fefce8" }}>Why this MVP works</h2>
-              <div style={{ display: "grid", gap: "10px", color: "#cbd5e1" }}>
-                <div>• One Raider.IO link gives the page identity.</div>
-                <div>• Voting is simple enough that people will actually do it.</div>
-                <div>• The categories match what tanks get judged on in Mythic+.</div>
-                <div>• Easy to expand later with auth, real profiles, and comments database.</div>
-              </div>
-            </div>
-          </div>
+          </motion.section>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
