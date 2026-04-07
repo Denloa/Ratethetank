@@ -1,6 +1,17 @@
+"use client";
+
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Star, Sword, Route, HeartPulse, MessageSquare, Skull, ExternalLink } from "lucide-react";
+import {
+  Shield,
+  Star,
+  Sword,
+  Route,
+  HeartPulse,
+  MessageSquare,
+  Skull,
+  ExternalLink,
+} from "lucide-react";
 
 const profile = {
   character: "Denloa",
@@ -52,8 +63,14 @@ function average(list, key) {
 
 function overallAverage(list) {
   if (!list.length) return 0;
-  const total = categories.reduce((sum, category) => sum + average(list, category.key), 0);
-  return total / categories.length;
+
+  const total = list.reduce((sum, item) => {
+    const values = categories.map((category) => item.ratings[category.key] || 0);
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    return sum + avg;
+  }, 0);
+
+  return total / list.length;
 }
 
 function stars(value) {
@@ -71,7 +88,7 @@ function RatingPips({ value, onChange }) {
           onClick={() => onChange(n)}
           className={`h-10 w-10 rounded-xl border text-sm font-bold transition ${
             value >= n
-              ? "border-amber-300 bg-amber-300/20 text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.18)]"
+              ? "border-amber-300 bg-amber-300/20 text-amber-200"
               : "border-white/10 bg-slate-950/70 text-slate-300 hover:border-amber-200/40 hover:text-amber-100"
           }`}
         >
@@ -137,12 +154,12 @@ export default function RateMyTankPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(120,53,15,0.35),transparent_28%),linear-gradient(180deg,#09090b_0%,#0f172a_45%,#020617_100%)] text-slate-100">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-200 w-fit"
+          className="mb-8 w-fit rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm font-medium text-amber-200"
         >
           WoW Mythic+ Tank Report • Anonymous guild and pug feedback
         </motion.div>
@@ -152,7 +169,7 @@ export default function RateMyTankPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+            className="rounded-[28px] border border-amber-200/15 bg-slate-900/60 p-6 shadow-2xl"
           >
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -193,7 +210,7 @@ export default function RateMyTankPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+            className="rounded-[28px] border border-amber-200/15 bg-slate-900/60 p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -239,7 +256,7 @@ export default function RateMyTankPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+            className="rounded-[28px] border border-amber-200/15 bg-slate-900/60 p-6 shadow-2xl"
           >
             <div className="mb-5 flex items-center gap-3">
               <div className="rounded-xl border border-amber-300/15 bg-amber-300/10 p-2 text-amber-200">
@@ -313,7 +330,7 @@ export default function RateMyTankPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-[28px] border border-amber-200/15 bg-slate-950/60 p-6 shadow-2xl backdrop-blur"
+            className="rounded-[28px] border border-amber-200/15 bg-slate-900/60 p-6 shadow-2xl"
           >
             <div className="mb-5 flex items-center gap-3">
               <div className="rounded-xl border border-amber-300/15 bg-amber-300/10 p-2 text-amber-200">
@@ -327,7 +344,9 @@ export default function RateMyTankPage() {
 
             <div className="space-y-4">
               {reviews.map((review) => {
-                const runAverage = overallAverage([{ ratings: review.ratings }]);
+                const values = categories.map((category) => review.ratings[category.key] || 0);
+                const runAverage = values.reduce((a, b) => a + b, 0) / values.length;
+
                 return (
                   <div key={review.id} className="rounded-[24px] border border-white/10 bg-black/20 p-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -346,8 +365,12 @@ export default function RateMyTankPage() {
 
                     <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                       {categories.map((category) => (
-                        <div key={category.key} className="rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-300">
-                          <span className="font-semibold text-slate-100">{category.label}:</span> {review.ratings[category.key]}/5
+                        <div
+                          key={category.key}
+                          className="rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-300"
+                        >
+                          <span className="font-semibold text-slate-100">{category.label}:</span>{" "}
+                          {review.ratings[category.key]}/5
                         </div>
                       ))}
                     </div>
